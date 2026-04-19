@@ -3,275 +3,309 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Benn's Brain</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Benns Brain</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0e0e0f;--surface:#17171a;--surface2:#1f1f24;--border:#2a2a30;--accent:#c8f135;--accent2:#3dffc0;--text:#f0f0f0;--muted:#6b6b78;--danger:#ff5f57;--radius:14px}
+:root{--bg:#0e0e0f;--s:#17171a;--s2:#1f1f24;--b:#2a2a30;--a:#c8f135;--a2:#3dffc0;--t:#f0f0f0;--m:#6b6b78;--d:#ff5f57;--r:14px}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden}
-#lockScreen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:100;padding:32px}
-.lock-logo{font-family:'Syne',sans-serif;font-size:48px;font-weight:800;letter-spacing:-2px;color:var(--accent);line-height:1;text-align:center}
-.lock-sub{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase}
-.lock-input{background:var(--surface2);border:2px solid var(--border);border-radius:var(--radius);padding:16px 20px;color:var(--text);font-family:'DM Mono',monospace;font-size:24px;width:100%;max-width:280px;text-align:center;letter-spacing:8px;outline:none;transition:border-color 0.2s;-webkit-text-security:disc}
-.lock-input:focus{border-color:var(--accent)}
-.lock-input.error{border-color:var(--danger)}
-.btn-unlock{background:var(--accent);color:#0e0e0f;border:none;border-radius:var(--radius);padding:18px 32px;font-family:'Syne',sans-serif;font-weight:700;font-size:16px;letter-spacing:2px;cursor:pointer;width:100%;max-width:280px;transition:opacity 0.15s}
-.btn-unlock:active{opacity:0.8}
+body{background:var(--bg);color:var(--t);font-family:'DM Mono',monospace;min-height:100dvh;display:flex;flex-direction:column}
+#lock{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;z-index:100;padding:32px}
+.logo{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--a);letter-spacing:-2px;line-height:1;text-align:center}
+.sub{font-size:11px;color:var(--m);letter-spacing:3px;text-transform:uppercase}
+.pin-wrap{display:flex;flex-direction:column;align-items:center;gap:20px;cursor:pointer}
+.pin-dots{display:flex;gap:16px}
+.pin-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--b);transition:all 0.15s}
+.pin-dot.filled{background:var(--a);border-color:var(--a);transform:scale(1.1)}
+.pin-dot.shake{background:var(--d);border-color:var(--d)}
+.pin-hint{color:var(--m);font-size:12px;letter-spacing:2px;text-transform:uppercase}
+#pin-input{position:fixed;top:-100px;opacity:0;width:1px;height:1px;font-size:16px}
+#pin-err{color:var(--d);font-size:13px;min-height:20px}
 #app{display:none;flex-direction:column;height:100dvh}
-header{padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:10}
-.app-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);letter-spacing:-1px}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--accent2);box-shadow:0 0 8px var(--accent2);animation:pulse 2s infinite}
+header{padding:16px 20px 12px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:10}
+.title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--a);letter-spacing:-1px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--a2);box-shadow:0 0 8px var(--a2);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-#chatArea{flex:1;overflow-y:auto;padding:16px 16px 0;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
-.msg{max-width:88%;padding:12px 16px;border-radius:var(--radius);font-size:14px;line-height:1.6;animation:fadeUp 0.2s ease}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.msg-user{background:var(--accent);color:#0e0e0f;align-self:flex-end}
-.msg-assistant{background:var(--surface);border:1px solid var(--border);align-self:flex-start;color:var(--text)}
-.msg-assistant b{color:var(--accent)}
-.msg-system{color:var(--muted);font-size:11px;text-align:center;letter-spacing:1px;align-self:center;padding:4px 0}
-#quickActions{padding:12px 16px 8px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
-#quickActions::-webkit-scrollbar{display:none}
-.chip{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:7px 14px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);white-space:nowrap;cursor:pointer;flex-shrink:0;transition:all 0.15s}
-.chip:active{border-color:var(--accent);color:var(--accent)}
-#inputArea{padding:10px 16px 20px;border-top:1px solid var(--border);background:var(--bg);display:flex;gap:10px;align-items:flex-end}
-#userInput{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:13px 16px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;outline:none;resize:none;max-height:120px;line-height:1.5;transition:border-color 0.2s}
-#userInput:focus{border-color:var(--accent)}
-#userInput::placeholder{color:var(--muted)}
-#sendBtn{background:var(--accent);color:#0e0e0f;border:none;border-radius:var(--radius);width:46px;height:46px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity 0.15s}
-#sendBtn:disabled{opacity:0.4}
-.typing{display:flex;gap:4px;align-items:center;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);align-self:flex-start}
-.typing span{width:7px;height:7px;background:var(--muted);border-radius:50%;animation:bounce 1.2s infinite}
-.typing span:nth-child(2){animation-delay:0.2s}
-.typing span:nth-child(3){animation-delay:0.4s}
-@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px);background:var(--accent)}}
-#lockError{color:var(--danger);font-size:13px;min-height:20px;text-align:center}
+#chat{flex:1;overflow-y:auto;padding:16px 16px 0;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
+.msg{max-width:88%;padding:12px 16px;border-radius:var(--r);font-size:14px;line-height:1.6;animation:up 0.2s ease}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.u{background:var(--a);color:#0e0e0f;align-self:flex-end}
+.aa{background:var(--s);border:1px solid var(--b);align-self:flex-start}
+.aa b{color:var(--a)}
+.sys{color:var(--m);font-size:11px;text-align:center;align-self:center;padding:4px 0}
+#chips{padding:12px 16px 8px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+#chips::-webkit-scrollbar{display:none}
+.chip{background:var(--s2);border:1px solid var(--b);border-radius:20px;padding:7px 14px;font-size:12px;color:var(--m);white-space:nowrap;cursor:pointer;flex-shrink:0}
+.chip:active{border-color:var(--a);color:var(--a)}
+#bar{padding:10px 16px 20px;border-top:1px solid var(--b);background:var(--bg);display:flex;gap:10px;align-items:flex-end}
+#inp{flex:1;background:var(--s2);border:1px solid var(--b);border-radius:var(--r);padding:13px 16px;color:var(--t);font-family:'DM Mono',monospace;font-size:14px;outline:none;resize:none;max-height:120px;line-height:1.5;transition:border-color 0.2s}
+#inp:focus{border-color:var(--a)}
+#inp::placeholder{color:var(--m)}
+#send{background:var(--a);color:#0e0e0f;border:none;border-radius:var(--r);width:46px;height:46px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#send:disabled{opacity:0.4}
+.typing{display:flex;gap:4px;align-items:center;padding:14px 16px;background:var(--s);border:1px solid var(--b);border-radius:var(--r);align-self:flex-start}
+.typing span{width:7px;height:7px;background:var(--m);border-radius:50%;animation:bo 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bo{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px);background:var(--a)}}
 </style>
 </head>
 <body>
 
-<div id="lockScreen">
-  <div class="lock-logo">BENN'S<br>BRAIN</div>
-  <div class="lock-sub">Personal Assistant</div>
-  <input type="tel" id="pinInput" class="lock-input" placeholder="PIN" maxlength="4" inputmode="numeric">
-  <button class="btn-unlock" id="unlockBtn" onclick="checkPin()">UNLOCK</button>
-  <div id="lockError"></div>
+<div id="lock">
+  <div class="logo">BENN'S<br>BRAIN</div>
+  <div class="sub">Personal Assistant</div>
+  <div class="pin-wrap" onclick="focusPin()">
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-hint">Tap here &amp; type your PIN</div>
+  </div>
+  <input id="pin-input" type="tel" inputmode="numeric" maxlength="4" autocomplete="off">
+  <div id="pin-err"></div>
 </div>
 
 <div id="app">
-  <header>
-    <div class="app-title">BENN'S BRAIN</div>
-    <div class="dot"></div>
-  </header>
-  <div id="chatArea"></div>
-  <div id="quickActions">
-    <div class="chip" onclick="quickSend('What are my top priority tasks?')">🎯 Top tasks</div>
-    <div class="chip" onclick="quickSend('Show my recent notes')">📝 Notes</div>
-    <div class="chip" onclick="quickSend('What are my goals?')">🏆 Goals</div>
-    <div class="chip" onclick="quickSend('Show my contacts')">👥 Contacts</div>
-    <div class="chip" onclick="quickSend('Any upcoming deadlines?')">⏰ Deadlines</div>
-    <div class="chip" onclick="quickSend('Show my personal info and account details')">🔐 Personal info</div>
-    <div class="chip" onclick="quickSend('What projects am I working on?')">🗂 Projects</div>
-    <div class="chip" onclick="quickSend('Show my habits and streaks')">💪 Habits</div>
-    <div class="chip" onclick="quickSend('Show recent transactions')">💰 Spending</div>
+  <header><div class="title">BENN'S BRAIN</div><div class="dot"></div></header>
+  <div id="chat"></div>
+  <div id="chips">
+    <div class="chip" onclick="qs('What are my top priority tasks?')">&#127919; Tasks</div>
+    <div class="chip" onclick="qs('Show my recent notes')">&#128203; Notes</div>
+    <div class="chip" onclick="qs('What are my goals?')">&#127942; Goals</div>
+    <div class="chip" onclick="qs('Show my contacts')">&#128101; Contacts</div>
+    <div class="chip" onclick="qs('Any upcoming deadlines?')">&#9200; Deadlines</div>
+    <div class="chip" onclick="qs('Show my personal info and account details')">&#128274; Personal info</div>
+    <div class="chip" onclick="qs('What projects am I working on?')">&#128193; Projects</div>
+    <div class="chip" onclick="qs('Show my habits and streaks')">&#128170; Habits</div>
+    <div class="chip" onclick="qs('Show recent transactions')">&#128176; Spending</div>
   </div>
-  <div id="inputArea">
-    <textarea id="userInput" placeholder="Remember to... / What is my... / Show me..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-    <button id="sendBtn" onclick="sendMessage()">&#8593;</button>
+  <div id="bar">
+    <textarea id="inp" placeholder="Remember to... / What is my... / Show me..." rows="1" onkeydown="hk(event)" oninput="ar(this)"></textarea>
+    <button id="send" onclick="go()">&#8593;</button>
   </div>
 </div>
 
 <script>
-var CORRECT_PIN = '8520';
-var SUPABASE_URL = 'https://xpnnvcpzqimtgqghwxdt.supabase.co';
-var SUPABASE_KEY = 'sb_publishable_6iMpnTAJX0UDWpCTycikig_sZeIti9J';
-var ANTHROPIC_KEY = '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';
+var PIN = '8520';
+var SB_URL = 'https://xpnnvcpzqimtgqghwxdt.supabase.co';
+var SB_KEY = 'sb_publishable_6iMpnTAJX0UDWpCTycikig_sZeIti9J';
+var ANT_KEY = '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';
 var MODEL = 'claude-sonnet-4-20250514';
-var history = [];
+var hist = [];
 var busy = false;
+var pinVal = '';
 
-document.getElementById('pinInput').addEventListener('keydown', function(e){ if(e.key==='Enter') checkPin(); });
+function focusPin() {
+  document.getElementById('pin-input').focus();
+}
 
-function checkPin() {
-  var entered = document.getElementById('pinInput').value.toString().trim();
-  var errEl = document.getElementById('lockError');
-  if (entered === CORRECT_PIN) {
-    document.getElementById('lockScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    addMsg('assistant', "Good to see you, Benn. I'm connected to your database. Talk to me naturally — <b>remember to book the hunting trip</b>, <b>what's my tax number</b>, <b>show top priority tasks</b>. I'll handle the rest.");
-  } else {
-    errEl.textContent = 'Wrong PIN. Try again.';
-    var inp = document.getElementById('pinInput');
-    inp.classList.add('error');
-    setTimeout(function(){ inp.classList.remove('error'); inp.value=''; errEl.textContent=''; }, 1000);
+document.getElementById('pin-input').addEventListener('input', function() {
+  pinVal = this.value.replace(/[^0-9]/g,'').slice(0,4);
+  this.value = pinVal;
+  for(var i=0;i<4;i++){
+    var dot = document.getElementById('pd'+i);
+    dot.classList.toggle('filled', i < pinVal.length);
   }
-}
+  if(pinVal.length === 4) {
+    if(pinVal === PIN) {
+      document.getElementById('lock').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      addMsg('aa', "Good to see you, Benn. I'm connected to your database. Just talk to me naturally — <b>remember to organise the hunting trip</b>, <b>what is my tax number</b>, <b>show top priority tasks</b>.");
+    } else {
+      document.getElementById('pin-err').textContent = 'Wrong PIN. Try again.';
+      var dots = document.querySelectorAll('.pin-dot');
+      dots.forEach(function(d){ d.classList.add('shake'); d.classList.remove('filled'); });
+      setTimeout(function(){
+        dots.forEach(function(d){ d.classList.remove('shake'); });
+        document.getElementById('pin-err').textContent = '';
+        pinVal = '';
+        document.getElementById('pin-input').value = '';
+      }, 800);
+    }
+  }
+});
 
-function addMsg(role, html) {
-  var area = document.getElementById('chatArea');
+function addMsg(cls, html) {
+  var c = document.getElementById('chat');
   var d = document.createElement('div');
-  d.className = 'msg msg-' + role;
+  d.className = 'msg '+cls;
   d.innerHTML = html;
-  area.appendChild(d);
-  area.scrollTop = area.scrollHeight;
-  return d;
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
 }
 
-function addSys(text) {
-  var area = document.getElementById('chatArea');
+function addSys(t) {
+  var c = document.getElementById('chat');
   var d = document.createElement('div');
-  d.className = 'msg msg-system';
-  d.textContent = '— ' + text + ' —';
-  area.appendChild(d);
-  area.scrollTop = area.scrollHeight;
+  d.className = 'msg sys';
+  d.textContent = '— '+t+' —';
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
 }
 
 function showTyping() {
-  var area = document.getElementById('chatArea');
+  var c = document.getElementById('chat');
   var d = document.createElement('div');
-  d.className = 'typing'; d.id = 'typingEl';
+  d.className = 'typing'; d.id = 'td';
   d.innerHTML = '<span></span><span></span><span></span>';
-  area.appendChild(d); area.scrollTop = area.scrollHeight;
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
 }
 
-function hideTyping() { var e = document.getElementById('typingEl'); if(e) e.remove(); }
+function hideTyping(){ var e=document.getElementById('td'); if(e)e.remove(); }
 
-function fmt(t) {
+function fmt(t){
   return t.replace(/**(.*?)**/g,'<b>$1</b>').replace(/
 /g,'<br>');
 }
 
-async function sbQuery(table, opts) {
-  opts = opts || {};
-  var url = SUPABASE_URL + '/rest/v1/' + table;
-  var p = [];
-  if(opts.select) p.push('select='+opts.select);
-  if(opts.filter) p.push(opts.filter);
-  if(opts.order) p.push('order='+opts.order);
-  if(opts.limit) p.push('limit='+opts.limit);
-  if(p.length) url += '?' + p.join('&');
-  var r = await fetch(url, {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
-  if(!r.ok) throw new Error('Query failed '+r.status);
+async function sbGet(table, opts) {
+  opts = opts||{};
+  var url = SB_URL+'/rest/v1/'+table;
+  var p=[];
+  if(opts.s) p.push('select='+opts.s);
+  if(opts.f) p.push(opts.f);
+  if(opts.o) p.push('order='+opts.o);
+  if(opts.l) p.push('limit='+opts.l);
+  if(p.length) url+='?'+p.join('&');
+  var r = await fetch(url,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
+  if(!r.ok) throw new Error('DB error '+r.status);
   return r.json();
 }
 
-async function sbInsert(table, data) {
-  var r = await fetch(SUPABASE_URL+'/rest/v1/'+table, {
+async function sbPost(table, data) {
+  var r = await fetch(SB_URL+'/rest/v1/'+table,{
     method:'POST',
-    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
     body:JSON.stringify(data)
   });
-  if(!r.ok){ var e=await r.text(); throw new Error(e); }
+  if(!r.ok){var e=await r.text();throw new Error(e);}
   return r.json();
 }
 
-async function fetchCtx(msg) {
-  var m = msg.toLowerCase();
-  var ctx = '';
+async function getCtx(msg) {
+  var m=msg.toLowerCase(), ctx='';
   try {
-    if(/task|todo|priority|urgent|deadline|remember|remind|buy |book |organise|organize|schedule/.test(m)) {
-      var d = await sbQuery('tasks',{select:'*',order:'created_at.desc',limit:25});
-      if(d.length) ctx += 'TASKS ('+d.length+'):\n'+JSON.stringify(d)+'\n';
+    if(/task|todo|priority|urgent|deadline|remember|remind|buy |book |organis|schedul/.test(m)){
+      var d=await sbGet('tasks',{s:'*',o:'created_at.desc',l:25});
+      if(d.length) ctx+='TASKS:
+'+JSON.stringify(d)+'
+';
     }
-    if(/note|wrote|jot/.test(m)) {
-      var d = await sbQuery('notes',{select:'*',order:'created_at.desc',limit:15});
-      if(d.length) ctx += 'NOTES:\n'+JSON.stringify(d)+'\n';
+    if(/note|wrote|jot/.test(m)){
+      var d=await sbGet('notes',{s:'*',o:'created_at.desc',l:15});
+      if(d.length) ctx+='NOTES:
+'+JSON.stringify(d)+'
+';
     }
-    if(/tax|bank|account|personal|number|id |info|detail/.test(m)) {
-      var d1 = await sbQuery('personal_knowledge',{select:'*'});
-      var d2 = await sbQuery('personal_tax_info',{select:'*'});
-      var d3 = await sbQuery('accounts',{select:'*'});
-      if(d1.length) ctx += 'PERSONAL_KNOWLEDGE:\n'+JSON.stringify(d1)+'\n';
-      if(d2.length) ctx += 'PERSONAL_TAX_INFO:\n'+JSON.stringify(d2)+'\n';
-      if(d3.length) ctx += 'ACCOUNTS:\n'+JSON.stringify(d3)+'\n';
+    if(/tax|bank|account|personal|number| id |info|detail/.test(m)){
+      var d1=await sbGet('personal_knowledge',{s:'*'});
+      var d2=await sbGet('personal_tax_info',{s:'*'});
+      var d3=await sbGet('accounts',{s:'*'});
+      if(d1.length) ctx+='PERSONAL_KNOWLEDGE:
+'+JSON.stringify(d1)+'
+';
+      if(d2.length) ctx+='PERSONAL_TAX_INFO:
+'+JSON.stringify(d2)+'
+';
+      if(d3.length) ctx+='ACCOUNTS:
+'+JSON.stringify(d3)+'
+';
     }
-    if(/goal|target|aim/.test(m)) {
-      var d = await sbQuery('goals',{select:'*'});
-      if(d.length) ctx += 'GOALS:\n'+JSON.stringify(d)+'\n';
+    if(/goal|target|aim/.test(m)){var d=await sbGet('goals',{s:'*'}); if(d.length) ctx+='GOALS:
+'+JSON.stringify(d)+'
+';}
+    if(/contact|phone|email|call/.test(m)){var d=await sbGet('contacts',{s:'*',l:30}); if(d.length) ctx+='CONTACTS:
+'+JSON.stringify(d)+'
+';}
+    if(/project|work on/.test(m)){var d=await sbGet('projects',{s:'*'}); if(d.length) ctx+='PROJECTS:
+'+JSON.stringify(d)+'
+';}
+    if(/habit|routine|streak/.test(m)){
+      var d1=await sbGet('habits',{s:'*'}); var d2=await sbGet('habit_logs',{s:'*',o:'created_at.desc',l:14});
+      if(d1.length) ctx+='HABITS:
+'+JSON.stringify(d1)+'
+';
+      if(d2.length) ctx+='HABIT_LOGS:
+'+JSON.stringify(d2)+'
+';
     }
-    if(/contact|phone|email|call/.test(m)) {
-      var d = await sbQuery('contacts',{select:'*',limit:30});
-      if(d.length) ctx += 'CONTACTS:\n'+JSON.stringify(d)+'\n';
+    if(/propert|house|land|farm/.test(m)){var d=await sbGet('properties',{s:'*'}); if(d.length) ctx+='PROPERTIES:
+'+JSON.stringify(d)+'
+';}
+    if(/business|company/.test(m)){var d=await sbGet('business_info',{s:'*'}); if(d.length) ctx+='BUSINESS:
+'+JSON.stringify(d)+'
+';}
+    if(/insur|policy|cover/.test(m)){var d=await sbGet('insurance_policies',{s:'*'}); if(d.length) ctx+='INSURANCE:
+'+JSON.stringify(d)+'
+';}
+    if(/spend|budget|transact|money|expense/.test(m)){
+      var d1=await sbGet('transactions',{s:'*',o:'created_at.desc',l:20}); var d2=await sbGet('budgets',{s:'*'});
+      if(d1.length) ctx+='TRANSACTIONS:
+'+JSON.stringify(d1)+'
+';
+      if(d2.length) ctx+='BUDGETS:
+'+JSON.stringify(d2)+'
+';
     }
-    if(/project|work on/.test(m)) {
-      var d = await sbQuery('projects',{select:'*'});
-      if(d.length) ctx += 'PROJECTS:\n'+JSON.stringify(d)+'\n';
+    if(!ctx){
+      var d1=await sbGet('tasks',{s:'*',o:'created_at.desc',l:10}); var d2=await sbGet('notes',{s:'*',o:'created_at.desc',l:5});
+      if(d1.length) ctx+='TASKS:
+'+JSON.stringify(d1)+'
+';
+      if(d2.length) ctx+='NOTES:
+'+JSON.stringify(d2)+'
+';
     }
-    if(/habit|routine|streak/.test(m)) {
-      var d1 = await sbQuery('habits',{select:'*'});
-      var d2 = await sbQuery('habit_logs',{select:'*',order:'created_at.desc',limit:14});
-      if(d1.length) ctx += 'HABITS:\n'+JSON.stringify(d1)+'\n';
-      if(d2.length) ctx += 'HABIT_LOGS:\n'+JSON.stringify(d2)+'\n';
-    }
-    if(/propert|house|land|farm/.test(m)) {
-      var d = await sbQuery('properties',{select:'*'});
-      if(d.length) ctx += 'PROPERTIES:\n'+JSON.stringify(d)+'\n';
-    }
-    if(/business|company/.test(m)) {
-      var d = await sbQuery('business_info',{select:'*'});
-      if(d.length) ctx += 'BUSINESS_INFO:\n'+JSON.stringify(d)+'\n';
-    }
-    if(/insur|policy|cover/.test(m)) {
-      var d = await sbQuery('insurance_policies',{select:'*'});
-      if(d.length) ctx += 'INSURANCE:\n'+JSON.stringify(d)+'\n';
-    }
-    if(/spend|budget|transact|money|expense/.test(m)) {
-      var d1 = await sbQuery('transactions',{select:'*',order:'created_at.desc',limit:20});
-      var d2 = await sbQuery('budgets',{select:'*'});
-      if(d1.length) ctx += 'TRANSACTIONS:\n'+JSON.stringify(d1)+'\n';
-      if(d2.length) ctx += 'BUDGETS:\n'+JSON.stringify(d2)+'\n';
-    }
-    if(!ctx) {
-      var d1 = await sbQuery('tasks',{select:'*',order:'created_at.desc',limit:10});
-      var d2 = await sbQuery('notes',{select:'*',order:'created_at.desc',limit:5});
-      if(d1.length) ctx += 'TASKS (recent):\n'+JSON.stringify(d1)+'\n';
-      if(d2.length) ctx += 'NOTES (recent):\n'+JSON.stringify(d2)+'\n';
-    }
-  } catch(e) { ctx += '[DB error: '+e.message+']'; }
+  } catch(e){ ctx+='[DB error: '+e.message+']'; }
   return ctx;
 }
 
-async function sendMessage() {
-  var input = document.getElementById('userInput');
-  var msg = input.value.trim();
-  if(!msg || busy) return;
-  input.value = ''; input.style.height = 'auto';
-  busy = true; document.getElementById('sendBtn').disabled = true;
-  addMsg('user', msg.replace(/</g,'&lt;'));
+async function go() {
+  var inp=document.getElementById('inp');
+  var msg=inp.value.trim();
+  if(!msg||busy) return;
+  inp.value=''; inp.style.height='auto';
+  busy=true; document.getElementById('send').disabled=true;
+  addMsg('u', msg.replace(/</g,'&lt;'));
   showTyping();
-  var ctx = await fetchCtx(msg);
-  var system = 'You are Benns personal AI brain and assistant with access to his Supabase database.\n\nAvailable tables: accounts, api_keys, budgets, business_info, colleagues, contacts, goals, habit_logs, habits, insurance_policies, notes, payslips, personal_knowledge, personal_tax_info, projects, properties, recipes, tasks, tax_assessments, transactions, utility_bills.\n\nCURRENT DATA:\n' + (ctx||'No data.') + '\n\nRULES:\n- Be concise and personal.\n- When Benn says remember to X, remind me to X, buy X, organise X, book X — INSERT a task. Respond with ###INSERT:tasks:{"title":"X","priority":"medium","status":"pending"}### and confirm.\n- When Benn says note that X — INSERT into notes.\n- Show sensitive info freely — Benn is authenticated.\n- Task priority: 🔴 high 🟡 medium 🟢 low.\n- Use **bold** for key values. Keep responses short.\n- If data missing say I dont have that stored yet.';
-  history.push({role:'user',content:msg});
+  var ctx=await getCtx(msg);
+  var sys='You are Benns personal AI brain. You have access to his Supabase database.
+
+Tables: accounts, api_keys, budgets, business_info, colleagues, contacts, goals, habit_logs, habits, insurance_policies, notes, payslips, personal_knowledge, personal_tax_info, projects, properties, recipes, tasks, tax_assessments, transactions, utility_bills.
+
+DATA:
+'+(ctx||'No data.')+'
+
+RULES: Be concise. When Benn says remember/remind/buy/book/organise X respond with ###INSERT:tasks:{"title":"X","priority":"medium","status":"pending"}### and confirm. Show sensitive info freely - Benn is authenticated. Use **bold** for key values. Task icons: high=🔴 medium=🟡 low=🟢. Keep responses short and mobile friendly.';
+  hist.push({role:'user',content:msg});
   try {
-    var res = await fetch('https://api.anthropic.com/v1/messages',{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:MODEL,max_tokens:1000,system:system,messages:history})
+      headers:{'Content-Type':'application/json','x-api-key':ANT_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:MODEL,max_tokens:1000,system:sys,messages:hist})
     });
-    var data = await res.json();
-    var reply = (data.content && data.content[0]) ? data.content[0].text : 'No response.';
-    history.push({role:'assistant',content:reply});
-    var actionMatch = reply.match(/###INSERT:(\w+):(\{[^}]+\})###/);
-    var display = reply.replace(/###INSERT:\w+:\{[^}]+\}###/g,'').trim();
+    var data=await res.json();
+    var reply=(data.content&&data.content[0])?data.content[0].text:'No response.';
+    hist.push({role:'assistant',content:reply});
+    var am=reply.match(/###INSERT:(w+):({[^}]+})###/);
+    var display=reply.replace(/###INSERT:w+:{[^}]+}###/g,'').trim();
     hideTyping();
-    addMsg('assistant', fmt(display));
-    if(actionMatch) {
-      try {
-        var tbl = actionMatch[1];
-        var payload = JSON.parse(actionMatch[2]);
-        await sbInsert(tbl, payload);
-        addSys('Saved to ' + tbl);
-      } catch(e) { addSys('Save failed: '+e.message); }
+    addMsg('aa',fmt(display));
+    if(am){
+      try{
+        var tbl=am[1]; var payload=JSON.parse(am[2]);
+        await sbPost(tbl,payload);
+        addSys('Saved to '+tbl);
+      }catch(e){addSys('Save failed: '+e.message);}
     }
-  } catch(e) {
-    hideTyping();
-    addMsg('assistant','Error: '+e.message);
-  }
-  busy = false; document.getElementById('sendBtn').disabled = false;
+  } catch(e){ hideTyping(); addMsg('aa','Error: '+e.message); }
+  busy=false; document.getElementById('send').disabled=false;
 }
 
-function quickSend(t){ document.getElementById('userInput').value=t; sendMessage(); }
-function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
-function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; }
+function qs(t){document.getElementById('inp').value=t; go();}
+function hk(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();go();}}
+function ar(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
 </script>
 </body>
 </html>
