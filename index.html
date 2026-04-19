@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Benn's Brain</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0f;
+    --surface: #17171a;
+    --surface2: #1f1f24;
+    --border: #2a2a30;
+    --accent: #c8f135;
+    --accent2: #3dffc0;
+    --text: #f0f0f0;
+    --muted: #6b6b78;
+    --danger: #ff5f57;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+  #lockScreen {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 28px; z-index: 100;
+    padding: 32px;
+  }
+  .lock-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -2px;
+    color: var(--accent);
+    line-height: 1;
+    text-align: center;
+  }
+  .lock-sub {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .lock-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 20px;
+    width: 100%;
+    max-width: 320px;
+    text-align: center;
+    letter-spacing: 6px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .lock-input:focus { border-color: var(--accent); }
+  .lock-input.error { border-color: var(--danger); animation: shake 0.3s; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #0e0e0f;
+    border: none;
+    border-radius: var(--radius);
+    padding: 16px 32px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    width: 100%;
+    max-width: 320px;
+  }
+  .btn-primary:active { opacity: 0.85; transform: scale(0.98); }
+  #app { display: none; flex-direction: column; height: 100dvh; }
+  header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .app-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -1px;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent2);
+    box-shadow: 0 0 8px var(--accent2);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  #chatArea {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scroll-behavior: smooth;
+  }
+  .msg {
+    max-width: 88%;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    line-height: 1.6;
+    animation: fadeUp 0.2s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .msg-user {
+    background: var(--accent);
+    color: #0e0e0f;
+    align-self: flex-end;
+  }
+  .msg-assistant {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    align-self: flex-start;
+    color: var(--text);
+  }
+  .msg-assistant strong { color: var(--accent); }
+  .msg-assistant em { color: var(--accent2); font-style: normal; }
+  .msg-system {
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    text-align: center;
+    letter-spacing: 1px;
+    align-self: center;
+    padding: 4px 0;
+  }
+  #quickActions {
+    padding: 12px 16px 8px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  #quickActions::-webkit-scrollbar { display: none; }
+  .chip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .chip:active { border-color: var(--accent); color: var(--accent); background: rgba(200,241,53,0.08); }
+  #inputArea {
+    padding: 10px 16px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  #userInput {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 13px 16px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    outline: none;
+    resize: none;
+    max-height: 120px;
+    line-height: 1.5;
+    transition: border-color 0.2s;
+  }
+  #userInput:focus { border-color: var(--accent); }
+  #userInput::placeholder { color: var(--muted); }
+  #sendBtn {
+    background: var(--accent);
+    color: #0e0e0f;
+    border: none;
+    border-radius: var(--radius);
+    width: 46px; height: 46px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  #sendBtn:active { opacity: 0.8; transform: scale(0.95); }
+  #sendBtn:disabled { opacity: 0.4; }
+  .typing-indicator {
+    display: flex; gap: 4px; align-items: center;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    align-self: flex-start;
+    animation: fadeUp 0.2s ease;
+  }
+  .typing-indicator span {
+    width: 7px; height: 7px;
+    background: var(--muted);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+  .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%,60%,100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); background: var(--accent); }
+  }
+</style>
+</head>
+<body>
+
+<div id="lockScreen">
+  <div class="lock-logo">BENN'S<br>BRAIN</div>
+  <div class="lock-sub">Personal Assistant</div>
+  <input type="password" id="pinInput" class="lock-input" placeholder="PIN" maxlength="6">
+  <button class="btn-primary" onclick="checkPin()">UNLOCK</button>
+  <div id="lockError" style="color:#ff5f57;font-size:12px;opacity:0;transition:opacity 0.2s;">Wrong PIN. Try again.</div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="app-title">BENN'S BRAIN</div>
+    <div class="status-dot"></div>
+  </header>
+  <div id="chatArea"></div>
+  <div id="quickActions">
+    <div class="chip" onclick="quickSend('What are my top priority tasks?')">🎯 Top tasks</div>
+    <div class="chip" onclick="quickSend('Show me my recent notes')">📝 Notes</div>
+    <div class="chip" onclick="quickSend('What goals do I have?')">🏆 Goals</div>
+    <div class="chip" onclick="quickSend('Show my contacts')">👥 Contacts</div>
+    <div class="chip" onclick="quickSend('Any upcoming deadlines?')">⏰ Deadlines</div>
+    <div class="chip" onclick="quickSend('Show my personal info and account details')">🔐 Personal info</div>
+    <div class="chip" onclick="quickSend('What projects am I working on?')">🗂 Projects</div>
+    <div class="chip" onclick="quickSend('Show my habits and streaks')">💪 Habits</div>
+    <div class="chip" onclick="quickSend('Show recent transactions')">💰 Spending</div>
+  </div>
+  <div id="inputArea">
+    <textarea id="userInput" placeholder="Remember to... / What is my... / Show me..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    <button id="sendBtn" onclick="sendMessage()">↑</button>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://xpnnvcpzqimtgqghwxdt.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_6iMpnTAJX0UDWpCTycikig_sZeIti9J';
+const ANTHROPIC_KEY = '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';
+const CORRECT_PIN = '8520';
+const MODEL = 'claude-sonnet-4-20250514';
+let conversationHistory = [];
+let isTyping = false;
+
+function checkPin() {
+  const pin = document.getElementById('pinInput').value;
+  const errEl = document.getElementById('lockError');
+  if (pin === CORRECT_PIN) {
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    addMessage('assistant', 'Good to see you, Benn. 👋\n\nI am connected to your database and ready. Just talk to me naturally — *"remember to organise the hunting trip"*, *"what is my tax number"*, *"show top priority tasks"*. I will handle the rest.');
+  } else {
+    const inp = document.getElementById('pinInput');
+    inp.classList.add('error');
+    errEl.style.opacity = '1';
+    setTimeout(() => { inp.classList.remove('error'); inp.value = ''; errEl.style.opacity = '0'; }, 1000);
+  }
+}
+
+document.getElementById('pinInput').addEventListener('keydown', e => { if (e.key === 'Enter') checkPin(); });
+
+function addMessage(role, text) {
+  const area = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'msg msg-' + role;
+  div.innerHTML = formatText(text);
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+  return div;
+}
+
+function formatText(t) {
+  return t.replace(/**(.*?)**/g, '<strong>$1</strong>')
+          .replace(/*(.*?)*/g, '<em>$1</em>')
+          .replace(/\n/g, '<br>')
+          .replace(/
+/g, '<br>');
+}
+
+function showTyping() {
+  const area = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'typing-indicator'; div.id = 'typingDot';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function hideTyping() { const el = document.getElementById('typingDot'); if (el) el.remove(); }
+
+function addSystemMsg(text) {
+  const area = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'msg msg-system';
+  div.textContent = '— ' + text + ' —';
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+async function supabaseQuery(table, opts = {}) {
+  let url = SUPABASE_URL + '/rest/v1/' + table;
+  const p = [];
+  if (opts.select) p.push('select=' + opts.select);
+  if (opts.filter) p.push(opts.filter);
+  if (opts.order) p.push('order=' + opts.order);
+  if (opts.limit) p.push('limit=' + opts.limit);
+  if (p.length) url += '?' + p.join('&');
+  const r = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
+  if (!r.ok) throw new Error('Query failed: ' + r.status);
+  return r.json();
+}
+
+async function supabaseInsert(table, data) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + table, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+    body: JSON.stringify(data)
+  });
+  if (!r.ok) { const e = await r.text(); throw new Error(e); }
+  return r.json();
+}
+
+async function fetchContext(msg) {
+  const m = msg.toLowerCase();
+  let ctx = '';
+  try {
+    if (m.includes('task') || m.includes('todo') || m.includes('priority') || m.includes('urgent') || m.includes('deadline') || m.includes('do ') || m.includes('remember') || m.includes('remind')) {
+      const d = await supabaseQuery('tasks', { select: '*', order: 'created_at.desc', limit: 25 });
+      if (d.length) ctx += '\nTASKS (' + d.length + ' records):\n' + JSON.stringify(d, null, 1) + '\n';
+    }
+    if (m.includes('note') || m.includes('wrote') || m.includes('jot')) {
+      const d = await supabaseQuery('notes', { select: '*', order: 'created_at.desc', limit: 15 });
+      if (d.length) ctx += '\nNOTES:\n' + JSON.stringify(d, null, 1) + '\n';
+    }
+    if (m.includes('tax') || m.includes('bank') || m.includes('account') || m.includes('personal') || m.includes('number') || m.includes('id ') || m.includes('info')) {
+      const d1 = await supabaseQuery('personal_knowledge', { select: '*' });
+      const d2 = await supabaseQuery('personal_tax_info', { select: '*' });
+      const d3 = await supabaseQuery('accounts', { select: '*' });
+      if (d1.length) ctx += '\nPERSONAL_KNOWLEDGE:\n' + JSON.stringify(d1, null, 1) + '\n';
+      if (d2.length) ctx += '\nPERSONAL_TAX_INFO:\n' + JSON.stringify(d2, null, 1) + '\n';
+      if (d3.length) ctx += '\nACCOUNTS:\n' + JSON.stringify(d3, null, 1) + '\n';
+    }
+    if (m.includes('goal') || m.includes('target') || m.includes('aim')) {
+      const d = await supabaseQuery('goals', { select: '*' });
+      if (d.length) ctx += '\nGOALS:\n' + JSON.stringify(d, null, 1) + '\n';
+    }
+    if (m.includes('contact') || m.includes('phone') || m.includes('email') || m.includes('call')) {
+      const d = await supabaseQuery('contacts', { select: '*', limit: 30 });
+      if (d.length) ctx += '\nCONTACTS:\n' + JSON.stringify(d, null, 1) + '\n';
+    }
+    if (m.includes('project') || m.includes('work on')) {
+      const d = await supabaseQuery('projects', { select: '*' });
+      if (d.length) ctx += '\nPROJECTS:\n' + JSON.stringify(d, null, 1) + '\n';
+    }
+    if (m.includes('habit') || m.includes('routine') || m.includes('streak')) {
+      const d1 = await supabaseQuery('habits', { select: '*' });
+      const d2 = await supabaseQuery('habit_logs', { select: '*', order: 'created_at.desc', limit: 14 });
+      if (d1.length) ctx += '\nHABITS:\n' + JSON.stringify(d1, null, 1) + '\n';
+      if (d2.length) ctx += '\nHABIT_LOGS:\n' + JSON.stringify(d2, null, 1) + '\n';
+    }
+    if (m.includes('propert') || m.includes('house') || m.includes('land') || m.includes('farm')) {
+      const d = await supabaseQuery('properties', { select: '*' });
+      if (d.length) ctx += '\nPROPERTIES:\n' + JSON.stringify(d, null, 1) + '\n';
+    }
+    if (m.includes('business') || m.includes('company')) {
+      const d = await supabaseQuery('business_info', { select: '*' });
+      if (d.length) ctx += '\nBUSINESS_INFO:\n' + JSON.stringify(d, null, 1) + '\n';
+    }
+    if (m.includes('insur') || m.includes('policy') || m.includes('cover')) {
+      const d = await supabaseQuery('insurance_policies', { select: '*' });
+      if (d.length) ctx += '\nINSURANCE:\n' + JSON.stringify(d, null, 1) + '\n';
+    }
+    if (m.includes('spend') || m.includes('budget') || m.includes('transact') || m.includes('money') || m.includes('expense')) {
+      const d1 = await supabaseQuery('transactions', { select: '*', order: 'created_at.desc', limit: 20 });
+      const d2 = await supabaseQuery('budgets', { select: '*' });
+      if (d1.length) ctx += '\nTRANSACTIONS:\n' + JSON.stringify(d1, null, 1) + '\n';
+      if (d2.length) ctx += '\nBUDGETS:\n' + JSON.stringify(d2, null, 1) + '\n';
+    }
+    if (m.includes('colleague') || m.includes('staff') || m.includes('team') || m.includes('employee')) {
+      const d = await supabaseQuery('colleagues', { select: '*' });
+      if (d.length) ctx += '\nCOLLEAGUES:\n' + JSON.stringify(d, null, 1) + '\n';
+    }
+    if (!ctx) {
+      const d1 = await supabaseQuery('tasks', { select: '*', order: 'created_at.desc', limit: 10 });
+      const d2 = await supabaseQuery('notes', { select: '*', order: 'created_at.desc', limit: 5 });
+      if (d1.length) ctx += '\nTASKS (recent):\n' + JSON.stringify(d1, null, 1) + '\n';
+      if (d2.length) ctx += '\nNOTES (recent):\n' + JSON.stringify(d2, null, 1) + '\n';
+    }
+  } catch(e) { ctx += '\n[DB fetch error: ' + e.message + ']'; }
+  return ctx;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('userInput');
+  const userMsg = input.value.trim();
+  if (!userMsg || isTyping) return;
+  input.value = ''; input.style.height = 'auto';
+  isTyping = true; document.getElementById('sendBtn').disabled = true;
+  addMessage('user', userMsg);
+  showTyping();
+  const dbCtx = await fetchContext(userMsg);
+  const system = `You are Benn's personal AI brain and assistant. You have full access to his Supabase database.
+
+Available tables: accounts, api_keys, budgets, business_info, colleagues, contacts, goals, habit_logs, habits, insurance_policies, notes, payslips, personal_knowledge, personal_tax_info, projects, properties, recipes, tasks, tax_assessments, transactions, utility_bills.
+
+CURRENT DATABASE DATA:
+${dbCtx || 'No data fetched.'}
+
+RULES:
+- Be concise and personal. Benn hates fluff.
+- When Benn says "remember to X", "remind me to X", "buy X", "organise X", "book X" — this is a new TASK. Respond with: ###ACTION:INSERT:tasks:{"title":"X","priority":"medium","status":"pending"}### and confirm it.
+- When Benn says "note that X" or "add note X" — INSERT into notes table.
+- When answering questions, use the database data above.
+- Show sensitive info (bank numbers, tax IDs) clearly — Benn is authenticated.
+- For task lists: 🔴 high priority, 🟡 medium, 🟢 low.
+- Keep responses short and mobile-friendly.
+- If data is missing say "I don't have that stored yet."
+- Use **bold** for key values, bullet points for lists.`;
+
+  conversationHistory.push({ role: 'user', content: userMsg });
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: MODEL, max_tokens: 1000, system: system, messages: conversationHistory })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'No response received.';
+    conversationHistory.push({ role: 'assistant', content: reply });
+    const actionMatch = reply.match(/###ACTION:INSERT:(\w+):(\{.*?\})###/s);
+    const displayReply = reply.replace(/###ACTION:INSERT:\w+:\{.*?\}###/s, '').trim();
+    hideTyping();
+    addMessage('assistant', displayReply);
+    if (actionMatch) {
+      try {
+        const tbl = actionMatch[1];
+        const payload = JSON.parse(actionMatch[2]);
+        await supabaseInsert(tbl, payload);
+        addSystemMsg('✓ Saved to ' + tbl);
+      } catch(e) { addSystemMsg('⚠ Save failed: ' + e.message); }
+    }
+  } catch(e) {
+    hideTyping();
+    addMessage('assistant', 'Error: ' + e.message);
+  }
+  isTyping = false; document.getElementById('sendBtn').disabled = false;
+}
+
+function quickSend(t) { document.getElementById('userInput').value = t; sendMessage(); }
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
+</script>
+</body>
+</html>
